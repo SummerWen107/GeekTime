@@ -1,0 +1,4 @@
+﻿server:
+  tomcat:
+    threads:
+      max: 1
