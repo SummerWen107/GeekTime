@@ -1,6 +1,7 @@
-package com.summerwen.geektime_001.controller;
+package com.summerwen.geektime_001.node1;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,12 +16,13 @@ import java.util.Map;
  * @Description
  */
 @RestController
+@RequestMapping("/ThreadLocal")
 public class ThreadLocalErrDemo {
 
     private static final ThreadLocal<Integer> currentUser = ThreadLocal.withInitial(() -> null);
 
-    //http://localhost:8080/wrong/?userId=1
-    //http://localhost:8080/wrong/?userId=2
+    //http://localhost:8081/ThreadLocal/wrong?userId=1
+    //http://localhost:8081/ThreadLocal/wrong?userId=2
     //正常的before是null，但没有显示的删除缓存，导致缓存错乱
     //{
     //"before": "http-nio-8080-exec-1:1",

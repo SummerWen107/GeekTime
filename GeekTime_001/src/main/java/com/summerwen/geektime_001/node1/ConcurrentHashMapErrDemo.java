@@ -1,12 +1,14 @@
-package com.summerwen.geektime_001.controller;
+package com.summerwen.geektime_001.node1;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -21,6 +23,7 @@ import java.util.stream.LongStream;
  * @Description
  */
 @RestController
+@RequestMapping("/concurrentHashMap")
 @Slf4j
 public class ConcurrentHashMapErrDemo {
 
@@ -37,7 +40,8 @@ public class ConcurrentHashMapErrDemo {
                         (o1, o2) -> o1, ConcurrentHashMap::new));
     }
 
-    @GetMapping("/concurrentHashMap/wrong")
+    //http://localhost:8081/concurrentHashMap/wrong
+    @GetMapping("/wrong")
     public String wrong() throws InterruptedException {
         ConcurrentHashMap<String, Long> concurrentHashMap = getData(ITEM_COUNT - 100);
         //初始900个元素
@@ -59,5 +63,36 @@ public class ConcurrentHashMapErrDemo {
         log.info("finish size:{}", concurrentHashMap.size());
         return "OK";
     }
+
+    @GetMapping("/right")
+    public String right() throws InterruptedException {
+        ConcurrentHashMap<String, Long> concurrentHashMap = getData(ITEM_COUNT - 100);
+        //初始900个元素
+        log.info("init size:{}", concurrentHashMap.size());
+
+        ForkJoinPool forkJoinPool = new ForkJoinPool(THREAD_COUNT);
+        //使用线程池并发处理逻辑
+        forkJoinPool.execute(() -> IntStream.rangeClosed(1, 10).parallel().forEach(i -> {
+            synchronized (concurrentHashMap){
+                //查询还需要补充多少个元素
+                int gap = ITEM_COUNT - concurrentHashMap.size();
+                log.info("gap size:{}", gap);
+                //补充元素
+                concurrentHashMap.putAll(getData(gap));
+            }
+
+        }));
+        //等待所有任务完成
+        forkJoinPool.shutdown();
+        forkJoinPool.awaitTermination(1, TimeUnit.HOURS);
+        //最后元素个数会是1000吗？
+        log.info("finish size:{}", concurrentHashMap.size());
+        return "OK";
+    }
+
+
+
+
+
 
 }
